@@ -11,4 +11,4 @@ C/UNIX程序设计yaush（Yet Another Unix Shell）大作业
     7. 文件名tab补全，支持快捷键
     8. 环境变量、简单脚本
    
-使用C语言实现，最终功能和语法规则与Linux中自带的shell相似。
+使用C语言实现，最终功能和语法规则会以Ubuntu中自带的shell为目标进行实现。
