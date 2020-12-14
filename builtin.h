@@ -1,52 +1,17 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <wait.h>
-#include <pwd.h>
-#include <string.h>
-#include <readline/readline.h>
-#include <readline/history.h>
+#ifndef _BUILTIN_H_
+#define _BUILTIN_H_
 
-typedef struct
-{
-    char *name;
-    Function *func;
-    char *doc;
-} Builtin_cmd;
+void Init_readline(void);
+char *Trim(char *str);
+int Exec_cmd();
+char *Read_cmd_line();
+void Print_name_and_dir();
+void find_pid_node_and_delete(int pid);
+void find_pid_node_and_change_running(int pid, int running);
+void find_pid_node_and_change_backgnd(int pid, int backgnd);
+void delete_died_node();
+int execute_command(void);
+void father_pause_proc();
+void waiting_for_pid(int pid);
 
-int builtin_cd(), builtin_pwd();
-
-int builtin_cd(char *arg)
-{
-    if (chdir(arg) == -1)
-    {
-        perror(arg);
-        return 1;
-    }
-    return 0;
-}
-
-int builtin_pwd()
-{
-    char pwd[1024];
-    if (getcwd(pwd, sizeof(pwd) - 1) == NULL)
-    {
-        printf("Error getting pwd!\n");
-        return 1;
-    }
-    else
-    {
-        printf("%s\n", pwd);
-        return 0;
-    }
-}
-
-//命令表
-static Builtin_cmd builtin_cmd_list[] = 
-{
-    {"cd", builtin_cd, "Change dir"},
-    {"pwd", builtin_pwd, "Get current path"}
-};
-
-const int builtin_num = (sizeof(builtin_cmd_list) / sizeof(Builtin_cmd));
+#endif /* _BUILTIN_H_ */
