@@ -34,6 +34,7 @@ int builtin_bg();
 int builtin_fg();
 int builtin_addpath(char *arg);
 int builtin_envpath();
+int builtin_history();
 char *line_read = NULL;  //终端输入字符串
 char *line_trim = NULL; //剔除前端空格的输入字符串
 
@@ -48,8 +49,22 @@ Builtin_cmd builtin_cmd_list[] =
     {"fg", builtin_fg},
     {"addpath", builtin_addpath},
     {"envpath", builtin_envpath},
+    {"history", builtin_history},
     {NULL, NULL}
 };
+
+int builtin_history()
+{
+    int i = 0;
+    HIST_ENTRY ** his;
+    his = history_list();
+    while(his[i] != NULL)
+    {
+        printf("%s\n", his[i]->line);
+        i++;
+    }
+    return 0;
+}
 
 void find_pid_node_and_delete(int pid)
 {
@@ -176,7 +191,7 @@ int builtin_kill(char *arg)
             return 0;
         }
     num = atoi(arg);
-    printf("I want to kill %d\n", num);
+    //printf("I want to kill %d\n", num);
     signal(SIGQUIT, SIG_DFL);
     kill(num, SIGQUIT);
     signal(SIGQUIT, SIG_IGN);
@@ -213,7 +228,7 @@ int builtin_bg(char *arg)
             return 0;
         }
     num = atoi(arg);
-    printf("I want to bg %d\n", num);
+    //printf("I want to bg %d\n", num);
     NODE *tmp = head->next;
     while (tmp != NULL)
     {
@@ -246,7 +261,7 @@ int builtin_fg(char *arg)
             return 0;
         }
     num = atoi(arg);
-    printf("I want to fg %d\n", num);
+    //printf("I want to fg %d\n", num);
     NODE *tmp = head->next;
     set_sig();
     while (tmp != NULL)
@@ -364,7 +379,7 @@ int Exec_cmd()
 char cmd_prefix[512];
 char *Get_name_and_dir()
 {
-    cmd_prefix[0] = '\0';
+    strcpy(cmd_prefix, "\033[1m\033[40;32m");
     struct passwd *passwd_tmp = getpwuid(getuid());
     strcat(cmd_prefix, passwd_tmp->pw_name);
     strcat(cmd_prefix, "@");
@@ -378,6 +393,7 @@ char *Get_name_and_dir()
     getcwd(pwd, sizeof(pwd) - 1);
     strcat(cmd_prefix, pwd);
     strcat(cmd_prefix, "$ ");
+    strcat(cmd_prefix, "\033[0m");
     return cmd_prefix;
 }
 
@@ -390,6 +406,7 @@ char *Read_cmd_line()
         line_read = NULL;
     }
     //读取用户输入的命令行
+    
     line_read = readline(Get_name_and_dir());
 
     //剔除命令行首尾的空白字符。若剔除后的命令不为空，则存入历史列表
@@ -553,13 +570,7 @@ int execute_command(void)
 			cmd[cmd_count - 1].outfd = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	}
 
-	/* 因为后台作业不会调用wait等待子进程退出 */
-	/* 为避免僵死进程，可以忽略SIGCHLD信号 */
 
-	//if (backgnd == 1)
-	//	signal(SIGCHLD, SIG_IGN);
-	//else
-	//	signal(SIGCHLD, SIG_DFL);
 
 	int i;
 	int fd;
