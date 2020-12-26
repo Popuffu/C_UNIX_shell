@@ -38,7 +38,7 @@ int builtin_history();
 char *line_read = NULL;  //终端输入字符串
 char *line_trim = NULL; //剔除前端空格的输入字符串
 
-Builtin_cmd builtin_cmd_list[] =
+Builtin_cmd builtin_cmd_list[] = // 内置命令表
 {
     {"cd", builtin_cd},
     {"pwd", builtin_pwd},
@@ -53,20 +53,19 @@ Builtin_cmd builtin_cmd_list[] =
     {NULL, NULL}
 };
 
-int builtin_history()
+int can_find_pid_node(int pid) // 在进程信息链表中找到对应pid的节点并更改其是否后台的属性
 {
-    int i = 0;
-    HIST_ENTRY ** his;
-    his = history_list();
-    while(his[i] != NULL)
+    NODE *bng = head->next;
+    while (bng != NULL)
     {
-        printf("%s\n", his[i]->line);
-        i++;
+        if (bng->npid == pid)
+            return 1;
+        bng = bng->next;
     }
     return 0;
 }
 
-void find_pid_node_and_delete(int pid)
+void find_pid_node_and_delete(int pid) // 找到进程信息链表中对应pid的节点并删除
 {
     NODE *bng = head->next;
     NODE *pre = head;
@@ -87,7 +86,7 @@ void find_pid_node_and_delete(int pid)
         free(bng);
 }
 
-void delete_died_node()
+void delete_died_node() // 遍历进程信息链表，把所有已经死掉的进程节点删掉
 {
     int status;
     NODE *bng = head->next;
@@ -110,7 +109,7 @@ void delete_died_node()
     }
 }
 
-void find_pid_node_and_change_backgnd(int pid, int backgnd)
+void find_pid_node_and_change_backgnd(int pid, int backgnd) // 在进程信息链表中找到对应pid的节点并更改其是否后台的属性
 {
     NODE *bng = head->next;
     while (bng != NULL)
@@ -121,7 +120,7 @@ void find_pid_node_and_change_backgnd(int pid, int backgnd)
     }
 }
 
-void find_pid_node_and_change_running(int pid, int running)
+void find_pid_node_and_change_running(int pid, int running) // 在进程信息链表中找到对应pid的节点并更改其是否在运行的属性
 {
     NODE *bng = head->next;
     while (bng != NULL)
@@ -132,7 +131,7 @@ void find_pid_node_and_change_running(int pid, int running)
     }
 }
 
-int builtin_cd(char *arg)
+int builtin_cd(char *arg) //cd内置命令，切换路径
 {
     if (chdir(arg) == -1)
     {
@@ -142,7 +141,7 @@ int builtin_cd(char *arg)
     return 0;
 }
 
-int builtin_pwd()
+int builtin_pwd() // pwd内置命令，查看当前路径
 {
     char pwd[1024];
     if (getcwd(pwd, sizeof(pwd) - 1) == NULL)
@@ -157,7 +156,7 @@ int builtin_pwd()
     }
 }
 
-int builtin_exit()
+int builtin_exit() // exit内置命令，退出yaush。如果此时有任务还在运行则输出提示
 {
     delete_died_node();
     int Pgnum = 0;
@@ -171,14 +170,23 @@ int builtin_exit()
     {
         printf("There are programs in the background,are you sure to exit? y/n\n");
         char c = getchar();
-        if (c == 'n')
+        char tmpc;
+        fflush(stdin);
+        while ((tmpc = getchar()) != EOF && tmpc != '\n') // 清空输入缓冲区
+            ;
+        if (c == 'y')
+            exit(0);
+        else
             return 0;
     }
-    exit(0);
-    return 0;
+    else
+    {
+        exit(0);
+    }
+    
 }
 
-int builtin_kill(char *arg)
+int builtin_kill(char *arg) // kill内置命令，杀死对应pid的进程
 {
     int num = 0;
     int i = 0;
@@ -199,7 +207,7 @@ int builtin_kill(char *arg)
     return 0;
 }
 
-int builtin_jobs()
+int builtin_jobs() // jobs内置命令，查看当前所有记录的进程信息
 {
     delete_died_node();
     NODE *prout = head->next;
@@ -214,7 +222,7 @@ int builtin_jobs()
     return 0;
 }
 
-int builtin_bg(char *arg)
+int builtin_bg(char *arg) // bg内置命令，将任务转到后台运行
 {
     int num = 0;
     int i = 0;
@@ -247,7 +255,7 @@ int builtin_bg(char *arg)
     return 0;
 }
 
-int builtin_fg(char *arg)
+int builtin_fg(char *arg) // fg内置命令，将任务转到前台运行
 {
     int num = 0;
     int i = 0;
@@ -285,7 +293,7 @@ int builtin_fg(char *arg)
     return 0;
 }
 
-int builtin_addpath(char *arg)
+int builtin_addpath(char *arg) // addpath内置命令，在path中增加输入的内容
 {
     if (strlen(arg) <= 0)
         return 0;
@@ -305,16 +313,28 @@ int builtin_addpath(char *arg)
     return 0;
 }
 
-int builtin_envpath()
+int builtin_envpath() // envpath内置命令，读取当前PATH环境变量
 {
     printf("PATH=%s\n", getenv("PATH"));
     return 0;
 }
 
+int builtin_history() // history内置命令，读取历史记录
+{
+    int i = 0;
+    HIST_ENTRY ** his;
+    his = history_list();
+    while(his[i] != NULL)
+    {
+        printf("%s\n", his[i]->line);
+        i++;
+    }
+    return 0;
+}
+
 const int builtin_cmd_num = (sizeof(builtin_cmd_list) / sizeof(Builtin_cmd)) - 1;
 
-//剔除字符串首尾的空白字符(含空格)
-char *Trim(char *str)
+char *Trim(char *str) // 剔除字符串首尾的空白字符(含空格)
 {
     if (str == NULL)
         return "NULL";
@@ -334,9 +354,7 @@ char *Trim(char *str)
     return p_head;
 }
 
-/* Look up NAME as the name of a command, and return a pointer to that
-   command.  Return a NULL pointer if NAME isn't a command name. */
-Builtin_cmd *Find_builtin_cmd(char *name)
+Builtin_cmd *Find_builtin_cmd(char *name) // 在内置命令表中寻找对应指令
 {
     register int i;
     for (i = 0; i < builtin_cmd_num; i++)
@@ -345,8 +363,7 @@ Builtin_cmd *Find_builtin_cmd(char *name)
     return ((Builtin_cmd *)NULL);
 }
 
-//执行命令
-int Exec_cmd()
+int Exec_cmd()//执行命令，未找到内置命令返回-1，否则返回内置命令返回值
 {
     int i = 0;
     Builtin_cmd *command;
@@ -365,21 +382,18 @@ int Exec_cmd()
 
     command = Find_builtin_cmd(word);
 
-    if (!command)
+    if (!command) // 未找到对应内置命令
         return -1;
-    /* Get argument to command, if any. */
     while (whitespace (line[i]))
         i++;
-
     word = line + i;
-    /* Call the function. */
     return (*(command->func))(word);
 }
 
 char cmd_prefix[512];
-char *Get_name_and_dir()
+char *Get_name_and_dir() // 用户名和当前路径
 {
-    strcpy(cmd_prefix, "\033[1m\033[40;32m");
+    strcpy(cmd_prefix, "\033[0;32m");
     struct passwd *passwd_tmp = getpwuid(getuid());
     strcat(cmd_prefix, passwd_tmp->pw_name);
     strcat(cmd_prefix, "@");
@@ -440,7 +454,7 @@ char *Cmd_generator(char *text, int state)
     return ((char *)NULL);
 }
 
-char **Cmd_complete(const char *text, int start, int end)
+char **Cmd_complete(const char *text, int start, int end) // readline自动补全
 {
     char **matches = NULL;
     if (start == 0)
@@ -448,8 +462,7 @@ char **Cmd_complete(const char *text, int start, int end)
     return matches;
 }
 
-//初始化Tab键能补齐的Command函数
-void Init_readline(void)
+void Init_readline(void)//初始化Tab键能补齐的Cmd_complete函数
 {
     rl_attempted_completion_function = Cmd_complete;
 }
@@ -460,7 +473,7 @@ char lastpid_info[1000];
 void waiting_for_pid(int pid)
 {
 	recv_pause = 0;
-	/* 前台作业，需要等待管道中最后一个命令退出 */
+	// 前台作业，需要等待管道中最后一个命令退出
 	int status;
 	delete_died_node();
 	while (waitpid(pid, &status, WNOHANG) == 0)
@@ -472,17 +485,20 @@ void waiting_for_pid(int pid)
 
 void father_pause_proc()
 {
-	recv_pause = 1;
-	kill(lastpid, SIGSTOP);
-	find_pid_node_and_change_backgnd(lastpid, 1);
-	find_pid_node_and_change_running(lastpid, 0);
-	printf("\n[Stopped]\n");
+    if (can_find_pid_node(lastpid)) // 若进程信息链表中有这个pid的任务，则给他发送stop
+    {
+	    recv_pause = 1;
+        kill(lastpid, SIGSTOP);
+        find_pid_node_and_change_backgnd(lastpid, 1);
+        find_pid_node_and_change_running(lastpid, 0);
+        printf("\npid: %d, [Stopped]\n", lastpid);
+    }
 }
 
 void add_job_into_list(int pid, int backgnd, int running, char *cmd)
 {
-	/*添加入jobs的链表*/
-	//printf("Add this job into list\n");
+	// 添加入jobs的链表
+	// printf("Add this job into list\n");
 	NODE *p = (NODE *)malloc(sizeof(NODE));
 	p->npid = pid;
 	p->backgnd = backgnd;
@@ -506,7 +522,7 @@ void forkexec(int i)
 
 	if (pid > 0)
 	{
-		/* 父进程 */
+		// 父进程
 		add_job_into_list(pid, backgnd, 1, cmdline);
 		lastpid = pid;
 		strcpy(lastpid_info, cmdline);
@@ -514,17 +530,13 @@ void forkexec(int i)
 	}
 	else if (pid == 0)
 	{
-
-		/* backgnd=1时，将第一条简单命令的infd重定向至/dev/null */
-		/* 当第一条命令试图从标准输入获取数据的时候立即返回EOF */
+        // 子进程
+		// backgnd=1时，将第一条简单命令的infd重定向至/dev/null
+		// 当第一条命令试图从标准输入获取数据的时候立即返回EOF
 
 		if (cmd[i].infd == 0 && backgnd == 1)
 			cmd[i].infd = open("/dev/null", O_RDONLY);
 
-		/* 将第一个简单命令进程作为进程组组长 
-		if (i == 0)
-			setpgid(0, 0);*/
-		/* 子进程 */
 		if (cmd[i].infd != 0)
 		{
 			close(0);
@@ -540,13 +552,13 @@ void forkexec(int i)
 		for (j = 3; j < OPEN_MAX; ++j)
 			close(j);
 
-		/* 前台作业能够接收SIGINT(ctrl C), SIGTSTP(ctrl Z)、SIGQUIT信号 */
-		/* 这两个信号要恢复为默认操作 */
+		// 前台作业能够接收SIGINT(ctrl C), SIGTSTP(ctrl Z), SIGQUIT信号
+		// 将信号要恢复为默认操作
+		signal(SIGTSTP, SIG_IGN);
 		if (backgnd == 0)
 		{
 			signal(SIGINT, SIG_DFL);
 			signal(SIGQUIT, SIG_DFL);
-			//signal(SIGTSTP, SIG_IGN);
 		}
 		// printf("child\n");
 		execvp(cmd[i].args[0], cmd[i].args);
@@ -554,7 +566,7 @@ void forkexec(int i)
 	}
 }
 
-int execute_command(void)
+int execute_command(void) // 执行外部命令
 {
 	if (cmd_count == 0)
 		return 0;
@@ -570,14 +582,12 @@ int execute_command(void)
 			cmd[cmd_count - 1].outfd = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	}
 
-
-
 	int i;
 	int fd;
 	int fds[2];
 	for (i = 0; i < cmd_count; ++i)
 	{
-		/* 如果不是最后一条命令，则需要创建管道 */
+		// 如果不是最后一条命令，则需要创建管道
 		if (i < cmd_count - 1)
 		{
 			pipe(fds);

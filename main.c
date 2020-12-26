@@ -25,18 +25,14 @@ int main(void)
 	Init_readline();
 	while (1)
 	{
-		/* 初始化环境 */
-		init();
-		set_sig();
-		/* 获取命令 */
-		read_command();
-		if (Exec_cmd() < 0)
+		init(); // 初始化
+		set_sig(); // 更改信号量处理方式
+		read_command(); // 读取输入
+		if (Exec_cmd() < 0) // 是否为内置命令
 		{
-			/* 解析命令 */
-			parse_command();
-			//print_command();
-			/* 执行命令 */
-			execute_command();
+			// 不是内置命令
+			parse_command(); // 分割
+			execute_command(); // 执行
 		}
 	}
 	printf("\nexit\n");

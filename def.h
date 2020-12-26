@@ -24,4 +24,4 @@ typedef struct node
    char backcn[200];
    struct node *next;
 }NODE;
-#endif /* _DEF_H_ */
+#endif

@@ -11,9 +11,9 @@
 
 void set_sig(void)
 {
-	signal(SIGINT, SIG_IGN);
-	signal(SIGTSTP, father_pause_proc);
-	signal(SIGQUIT, SIG_IGN);
+	signal(SIGINT, SIG_IGN); // 忽略
+	signal(SIGTSTP, father_pause_proc); // ctrl + Z
+	signal(SIGQUIT, SIG_IGN); // 忽略
 }
 
 void init(void)
@@ -41,7 +41,7 @@ void init(void)
 
 void read_command(void)
 {
-	/* 按行读取命令，cmdline中包含\n字符 */
+	// 按行读取命令，cmdline中包含\n
 	char *tmp_line = Read_cmd_line();
 	strcpy(cmdline, tmp_line);
 	strcat(cmdline, "\n");
@@ -54,32 +54,32 @@ int parse_command(void)
 	if (check_and_move("\n"))
 		return 0;
 
-	/* 1、解析第一条简单命令 */
+	// 1、解析第一条简单命令
        
 	get_command(0);
-	/* 2、判定是否有输入重定向符 */
+	// 2、判定是否有输入重定向符 
 	if (check_and_move("<"))
 		getname(infile);
-	/* 3、判定是否有管道 */
+	// 3、判定是否有管道 
 	int i;
-	for (i=1; i<PIPELINE; ++i)
+	for (i=1; i < PIPELINE; ++i)
 	{
 		if (check_and_move("|"))
 			get_command(i);
 		else
 			break;
 	}
-	/* 4、判定是否有输出重定向符 */
+	// 4、判定是否有输出重定向符
 	if (check_and_move(">"))
 	{
-		if (check_and_move(">"))
+		if (check_and_move(">")) // >>
 			append = 1;
 		getname(outfile);
 	}
-	/* 5、判定是否后台作业 */
+	// 5、判定是否后台作业 
 	if (check_and_move("&"))
 		backgnd = 1;
-	/* 6、判定命令结束‘\n’*/
+	// 6、判定命令结束‘\n’
 	if (check_and_move("\n"))
 	{
 		cmd_count = i;
@@ -120,19 +120,19 @@ void print_command()
  */
 void get_command(int i)
 {
-	/*   cat < test.txt | grep -n public > test2.txt & */
+	// cat < test.txt | grep -n public > test2.txt &
 
 	int j = 0;
 	int inword;
 	while (*lineptr != '\0')
 	{
-		/* 去除空格 */
+		// 去除空格
 		while (*lineptr == ' ' || *lineptr == '\t')
 			lineptr++;
 
-		/* 将第i条命令第j个参数指向avptr */
+		// 将第i条命令第j个参数指向avptr
 		cmd[i].args[j] = avptr;
-		/* 提取参数 */
+		// 提取参数
 		while (*lineptr != '\0'
 			&& *lineptr != ' '
 			&& *lineptr != '\t'
@@ -142,7 +142,7 @@ void get_command(int i)
 			&& *lineptr != '&'
 			&& *lineptr != '\n')
 		{
-				/* 参数提取至avptr指针所向的数组avline */
+				// 参数提取至avptr指针所向的数组avline
 				*avptr++ = *lineptr++;
 				inword = 1;
 		}
@@ -185,14 +185,12 @@ int check_and_move(const char *str)
 		str++;
 		p++;
 	}
-
 	if (*str == '\0')
 	{
-		lineptr = p;	/* lineptr移过所匹配的字符串 */
+		lineptr = p; // lineptr移过所匹配的字符串
 		return 1;
 	}
-
-	/* lineptr保持不变 */
+	// lineptr保持不变
 	return 0;
 }
 

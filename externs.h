@@ -18,4 +18,4 @@ extern int lastpid;
 
 extern NODE *head;
 
-#endif /* _EXTERNS_H_ */
+#endif

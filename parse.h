@@ -10,4 +10,4 @@ void get_command(int i);
 void getname(char *name);
 void print_command();
 
-#endif /* _PARSE_H_ */
+#endif
