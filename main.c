@@ -23,7 +23,7 @@ int main(void)
     head=(NODE*)malloc(sizeof(NODE));
     head->next=NULL;
 	Init_readline();
-	while (1)
+	while (1) // shell主循环
 	{
 		init(); // 初始化
 		set_sig(); // 更改信号量处理方式

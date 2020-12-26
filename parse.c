@@ -47,23 +47,21 @@ void read_command(void)
 	strcat(cmdline, "\n");
 }
 
-//成功返回解析到的命令个数，失败返回-1
-int parse_command(void)
+int parse_command(void) // 成功返回解析到的命令个数，失败返回-1
 {
-	/* cat < test.txt | grep -n public > test2.txt & */
+	// cat < a.txt | grep -n haha > b.txt &
 	if (check_and_move("\n"))
 		return 0;
 
 	// 1、解析第一条简单命令
-       
 	get_command(0);
 	// 2、判定是否有输入重定向符 
 	if (check_and_move("<"))
 		getname(infile);
 	// 3、判定是否有管道 
 	int i;
-	for (i=1; i < PIPELINE; ++i)
-	{
+	for (i = 1; i < PIPELINE; ++i)
+	{ 
 		if (check_and_move("|"))
 			get_command(i);
 		else
@@ -114,13 +112,11 @@ void print_command()
 	}
 }
 
-/*
- * 解析简单命令至cmd[i]
- * 提取cmdline中的命令参数到avline数组中，并且将COMMAND结构中的args[]中的每个指针指向这些字符串
- */
+// 解析简单命令至cmd[i]
+// 提取cmdline中的命令参数到avline数组中，并且将command结构中的args[]中的每个指针指向这些字符串
 void get_command(int i)
 {
-	// cat < test.txt | grep -n public > test2.txt &
+	// cat < a.txt | grep -n haha > b.txt &
 
 	int j = 0;
 	int inword;
@@ -142,9 +138,9 @@ void get_command(int i)
 			&& *lineptr != '&'
 			&& *lineptr != '\n')
 		{
-				// 参数提取至avptr指针所向的数组avline
-				*avptr++ = *lineptr++;
-				inword = 1;
+			// 参数提取至avptr指针所向的数组avline
+			*avptr++ = *lineptr++;
+			inword = 1;
 		}
 		*avptr++ = '\0';
 		switch (*lineptr)
@@ -162,17 +158,15 @@ void get_command(int i)
 			if (inword == 0)
 				cmd[i].args[j] = NULL;
 			return;
-		default: /* for '\0' */
+		default: // for '\0'
 			return;
 		}
 	}
 }
 
-/*
- * 将lineptr中的字符串与str进行匹配
- * 成功返回1，lineptr移过所匹配的字符串
- * 失败返回0，lineptr保持不变
- */
+// 将lineptr中的字符串与str进行匹配
+// 成功返回1，lineptr移过所匹配的字符串
+// 失败返回0，lineptr保持不变
 int check_and_move(const char *str)
 {
 	char *p;

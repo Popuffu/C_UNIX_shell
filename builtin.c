@@ -28,7 +28,6 @@ int builtin_exit();
 int builtin_cd(char *arg);
 int builtin_jobs();
 int builtin_kill(char *arg);
-int builtin_cd(char *arg);
 int builtin_pwd();
 int builtin_bg();
 int builtin_fg();
@@ -369,7 +368,7 @@ int Exec_cmd()//执行命令，未找到内置命令返回-1，否则返回内�
     Builtin_cmd *command;
     char *word;
     char *line = line_trim;
-    /* Isolate the command word. */
+    // Isolate the command word.
     while (line[i] && whitespace (line[i]))
         i++;
     word = line + i;
@@ -492,6 +491,10 @@ void father_pause_proc()
         find_pid_node_and_change_backgnd(lastpid, 1);
         find_pid_node_and_change_running(lastpid, 0);
         printf("\npid: %d, [Stopped]\n", lastpid);
+    }
+    else
+    {
+        printf("\n%s", Get_name_and_dir());
     }
 }
 
